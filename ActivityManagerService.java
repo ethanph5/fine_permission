@@ -4408,19 +4408,22 @@ public final class ActivityManagerService extends ActivityManagerNative
 			File dataDir = Environment.getDataDirectory();
 		    File perLog = new File(dataDir, "perLog");
 		    perLog.mkdirs();
-			File logFile = new File(perLog, "permissionLog3.txt");
+			File logFile = new File(perLog, "permissionLog5.txt");
 		    
-			try {
-  				// Create file 
-  				FileWriter fstream = new FileWriter(logFile,true);
-  				BufferedWriter out = new BufferedWriter(fstream);
-  				out.write("UID:" + uid + " has called " + s + " for " + p);
-				out.newLine();
-  				//Close the output stream
-  				out.close();
-  			} catch (Exception e) { //Catch exception if any
-  				System.err.println("Error: " + e.getMessage());
-  			}
+			if (!(uid == 0 || uid == Process.SYSTEM_UID || (uid >= 1000 & uid <= 1014))) {	
+				try {
+	  				// Create file 
+	  				FileWriter fstream = new FileWriter(logFile,true);
+	  				BufferedWriter out = new BufferedWriter(fstream);
+					out.write("UID:" + uid + " has called " + s + " with permission/uri:" + p);
+					out.newLine();
+					out.newLine();
+	  				//Close the output stream
+	  				out.close();
+	  			} catch (Exception e) { //Catch exception if any
+	  				System.err.println("Error: " + e.getMessage());
+	  			}
+			}
 		}
 	}
 
@@ -4432,10 +4435,8 @@ public final class ActivityManagerService extends ActivityManagerNative
 	
     public boolean checkPermission(String permission, int pid, int uid) {
 		
-		if (!(uid == 0 || uid == Process.SYSTEM_UID || pid == MY_PID)) {
 	    	PermissionLogger.logPermission(uid, "checkPermission", permission);
-		}
-
+		
             return mActivityManagerService.checkPermission(permission, pid,
                     uid) == PackageManager.PERMISSION_GRANTED;
         }
@@ -4449,10 +4450,7 @@ public final class ActivityManagerService extends ActivityManagerNative
         // We might be performing an operation on behalf of an indirect binder
         // invocation, e.g. via {@link #openContentUri}.  Check and adjust the
         // client identity accordingly before proceeding.
-	
-		if (!(uid == 0 || uid == Process.SYSTEM_UID || pid == MY_PID)) {
-	    	PermissionLogger.logPermission(uid, "checkComponentPermission", permission);
-		}
+		PermissionLogger.logPermission(uid, "checkComponentPermission", permission);
 
         Identity tlsIdentity = sCallerIdentity.get();
         if (tlsIdentity != null) {
@@ -4500,9 +4498,7 @@ public final class ActivityManagerService extends ActivityManagerNative
      */
     public int checkPermission(String permission, int pid, int uid) {
 
-		if (!(uid == 0 || uid == Process.SYSTEM_UID || pid == MY_PID)) {
-	    	PermissionLogger.logPermission(uid, "checkPermission", permission);
-		}
+		PermissionLogger.logPermission(uid, "checkPermission", permission);
 
         if (permission == null) {
             return PackageManager.PERMISSION_DENIED;
@@ -4539,10 +4535,8 @@ public final class ActivityManagerService extends ActivityManagerNative
 
     private final boolean checkHoldingPermissionsLocked(IPackageManager pm,
             ProviderInfo pi, Uri uri, int uid, int modeFlags) {
-
-		if (!(uid == 0 || uid == Process.SYSTEM_UID)) {
-	    	PermissionLogger.logPermission(uid, "checkHoldingPermissionsLocked", "");
-		}
+		
+		PermissionLogger.logPermission(uid, "checkHoldingPermissionsLocked", uri.toString());
 
         boolean readPerm = (modeFlags&Intent.FLAG_GRANT_READ_URI_PERMISSION) == 0;
         boolean writePerm = (modeFlags&Intent.FLAG_GRANT_WRITE_URI_PERMISSION) == 0;
@@ -4617,9 +4611,7 @@ public final class ActivityManagerService extends ActivityManagerNative
     private final boolean checkUriPermissionLocked(Uri uri, int uid,
             int modeFlags) {
 		
-		if (!(uid == 0 || uid == Process.SYSTEM_UID)) {
-	    	PermissionLogger.logPermission(uid, "checkUriPermissionLocked", "");
-		}
+		PermissionLogger.logPermission(uid, "checkUriPermissionLocked", uri.toString());
 
         // Root gets to do everything.
         if (uid == 0) {
